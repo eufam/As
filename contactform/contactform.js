@@ -88,30 +88,36 @@ jQuery(document).ready(function($) {
         i.next('.validation').html((ierror ? (i.attr('data-msg') != undefined ? i.attr('data-msg') : 'wrong Input') : '')).show('blind');
       }
     });
-    if (ferror) return false;
-    else var str = $(this).serialize();
-    var action = $(this).attr('action');
-    if( ! action ) {
-      action = 'contactform/contactform.php';
+    if (ferror) {
+      return false;
+    } else {
+      grecaptcha.ready(function(t) {
+        grecaptcha.execute('6LfbdpUUAAAAAIqykqixxRU6eAQQdVJzbIuIAMTQ', {action: 'enviar_mensaje'}).then(function(token) {
+          $.ajax({
+            type: "POST",
+            url: "https://rjsalas91.000webhostapp.com/contactform.php",
+            data: {
+              name: $('#name').val(),
+              email: $('#email').val(),
+              subject: $('#subject').val(),
+              message: $('#message').val(),
+              token: token
+            },
+            success: function(result) {
+              if (result.success) {
+                $("#sendmessage").addClass("show");
+                $("#errormessage").removeClass("show");
+                $('.contactForm').find("input, textarea").val("");
+              } else {
+                $("#sendmessage").removeClass("show");
+                $("#errormessage").addClass("show");
+                $('#errormessage').html('Error al enviar mensaje. Puedes usar otras formas para contactarme. ¡Gracias!');
+              }
+            }
+          });
+        });
+      });
     }
-    $.ajax({
-      type: "POST",
-      url: action,
-      data: str,
-      success: function(msg) {
-        // alert(msg);
-        if (msg == 'OK') {
-          $("#sendmessage").addClass("show");
-          $("#errormessage").removeClass("show");
-          $('.contactForm').find("input, textarea").val("");
-        } else {
-          $("#sendmessage").removeClass("show");
-          $("#errormessage").addClass("show");
-          $('#errormessage').html(msg);
-        }
-
-      }
-    });
     return false;
   });
 
